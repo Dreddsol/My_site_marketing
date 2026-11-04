@@ -13,15 +13,16 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Form
 const form = document.getElementById('contactForm');
 const successMessage = document.getElementById('successMessage');
-form.addEventListener('submit', function(e) {
+
+function submitContactForm(e) {
     e.preventDefault();
 
     // Проверка: при локальном открытии файла (file://) FormSubmit AJAX не работает из-за CORS
     if (window.location.protocol === 'file:') {
-        const name = form.name.value || 'Клиент';
-        const contactVal = form.contact.value || '';
-        const service = form.service.value || 'Не указана';
-        const message = form.message.value || '';
+        const name = form.querySelector('[name="name"]').value || 'Клиент';
+        const contactVal = form.querySelector('[name="contact"]').value || '';
+        const service = form.querySelector('[name="service"]').value || 'Не указана';
+        const message = form.querySelector('[name="message"]').value || '';
         const body = encodeURIComponent(
             'Имя: ' + name + '\nКонтакт: ' + contactVal + '\nУслуга: ' + service + '\nСообщение: ' + message
         );
@@ -50,9 +51,8 @@ form.addEventListener('submit', function(e) {
             successMessage.classList.add('show');
             setTimeout(() => { form.style.display = ''; successMessage.classList.remove('show'); }, 5000);
         } else if (data.message && data.message.toLowerCase().includes('confirm')) {
-            // Email не активирован — перенаправляем на обычную отправку для получения письма активации
-            alert('Необходимо активировать email в FormSubmit. Сейчас откроется страница активации.');
-            form.removeEventListener('submit', arguments.callee);
+            // Email не активирован — отвязываем обработчик и отправляем форму нативно
+            form.removeEventListener('submit', submitContactForm);
             form.submit();
         } else {
             alert(data.message || 'Не удалось отправить заявку. Попробуйте позже.');
@@ -67,7 +67,9 @@ form.addEventListener('submit', function(e) {
         button.disabled = false;
         button.innerHTML = originalText;
     });
-});
+}
+
+form.addEventListener('submit', submitContactForm);
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -292,8 +294,10 @@ document.querySelectorAll('.service-card, .advantage-card, .step').forEach(el =>
     showStep(0);
 })();
 
-// Pricing slider
+// Pricing slider (only on desktop)
 (function() {
+    if (window.innerWidth <= 1024) return;
+
     const track = document.getElementById('pricingTrack');
     const viewport = document.getElementById('pricingViewport');
     const prevBtn = document.getElementById('pricingPrev');

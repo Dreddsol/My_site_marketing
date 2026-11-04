@@ -261,7 +261,7 @@ section { position: relative; z-index: 1; padding: 100px 0; }
 }
 .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
 .step p { color: var(--text-secondary); font-size: 0.88rem; }
-.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.pricing-grid { display: none; }
 .pricing-card {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 36px; text-align: center;
@@ -476,13 +476,13 @@ footer p { color: var(--text-muted); font-size: 0.88rem; }
     .advantages-grid { grid-template-columns: repeat(2, 1fr); }
     .process-steps { grid-template-columns: repeat(2, 1fr); }
     .process-steps::before { display: none; }
-    .pricing-slider { gap: 0; }
-    .pricing-track .pricing-card { min-width: 100%; }
-    .slider-btn { display: none; }
-    .slider-dots { display: flex; }
+    .pricing-slider { display: none; }
+    .slider-dots { display: none; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .contact-wrapper { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
+    .pricing-grid { grid-template-columns: 1fr; }
     .hero h1 { font-size: 2.2rem; }
     .section-title { font-size: 1.8rem; }
     nav ul { display: none; }
