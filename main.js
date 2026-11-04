@@ -14,6 +14,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 const form = document.getElementById('contactForm');
 const successMessage = document.getElementById('successMessage');
 
+// Нативный (не AJAX) эндпоинт FormSubmit: только он отдаёт страницу активации
+// и корректно работает при прямом submit().
+function nativeAction(formEl) {
+    return formEl.action.replace('/ajax/', '/');
+}
+
 function submitContactForm(e) {
     e.preventDefault();
 
@@ -30,6 +36,10 @@ function submitContactForm(e) {
         return;
     }
 
+    // Явная проверка обязательных полей: без неё браузерная валидация иногда
+    // не срабатывает, и на сервер уходит пустая заявка без контактов.
+    if (!form.reportValidity()) return;
+
     const button = form.querySelector('.btn-submit');
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -45,14 +55,17 @@ function submitContactForm(e) {
         }
         return response.json();
     }).then(data => {
-        if (data.success) {
+        if (data.success === true || data.success === 'true') {
             form.reset();
             form.style.display = 'none';
             successMessage.classList.add('show');
             setTimeout(() => { form.style.display = ''; successMessage.classList.remove('show'); }, 5000);
         } else if (data.message && data.message.toLowerCase().includes('confirm')) {
-            // Email не активирован — отвязываем обработчик и отправляем форму нативно
+            // Email не активирован: отвязываем AJAX-обработчик и уходим на
+            // обычный эндпоинт — FormSubmit покажет страницу подтверждения почты.
+            alert('Почта ещё не подтверждена. Открываю страницу активации FormSubmit — перейдите по ссылке из письма.');
             form.removeEventListener('submit', submitContactForm);
+            form.action = nativeAction(form);
             form.submit();
         } else {
             alert(data.message || 'Не удалось отправить заявку. Попробуйте позже.');
@@ -271,11 +284,16 @@ document.querySelectorAll('.service-card, .advantage-card, .step').forEach(el =>
             if (!response.ok) throw new Error('HTTP ' + response.status);
             return response.json();
         }).then(function(data) {
-            if (data.success) {
+            if (data.success === true || data.success === 'true') {
                 quizFinalBody.style.display = 'none';
                 quizSuccess.classList.add('show');
                 progressFill.style.width = '100%';
                 progressText.textContent = 'Готово';
+            } else if (data.message && data.message.toLowerCase().includes('confirm')) {
+                alert('Почта ещё не подтверждена. Открываю страницу активации FormSubmit — перейдите по ссылке из письма.');
+                quizForm.removeEventListener('submit', arguments.callee);
+                quizForm.action = quizForm.action.replace('/ajax/', '/');
+                quizForm.submit();
             } else {
                 alert(data.message || 'Не удалось отправить заявку. Попробуйте позже.');
             }
